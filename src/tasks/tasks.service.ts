@@ -29,17 +29,22 @@ export class TasksService {
     return task;
   }
 
-  updateTask(id: string, updateTaskDto: UpdateTaskDto): Task {
-    const { title, description, status } = updateTaskDto;
-    const taskIndex = this.tasks.findIndex((task) => {
-      task.id = id;
-    });
+  // updateTask(id: string, updateTaskDto: UpdateTaskDto): Task {
+  //   const { title, description, status } = updateTaskDto;
+  //   const taskIndex = this.tasks.findIndex((task) => {
+  //     return task.id == id;
+  //   });
 
-    this.tasks[taskIndex].title = title;
-    this.tasks[taskIndex].description = description;
-    this.tasks[taskIndex].status = status;
+  //   this.tasks[taskIndex].title = title;
+  //   this.tasks[taskIndex].description = description;
+  //   this.tasks[taskIndex].status = status;
 
-    return this.tasks[taskIndex];
+  //   return this.tasks[taskIndex];
+  // }
+
+  updateTaskStatus(task: Task, status: TaskStatus) {
+    task.status = status;
+    return task;
   }
 
   deleteTask(id: string): void {
