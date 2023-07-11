@@ -4,6 +4,7 @@ import { v4 as uuid } from 'uuid';
 import { CreateTaskDto } from './dto/createTask.dto';
 import { UpdateTaskDto } from './dto/updateTask.dto';
 import { GetTaskFilter } from './dto/get-task-filter.dto';
+import { UpdateTaskStatusDto } from './dto/updateTaskStatus.dto';
 @Injectable()
 export class TasksService {
   private tasks: Task[] = [];
@@ -62,7 +63,8 @@ export class TasksService {
   //   return this.tasks[taskIndex];
   // }
 
-  updateTaskStatus(task: Task, status: TaskStatus) {
+  updateTaskStatus(task: Task, updateTaskStatusDto: UpdateTaskStatusDto) {
+    const { status } = updateTaskStatusDto;
     task.status = status;
     return task;
   }
