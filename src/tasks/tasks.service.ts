@@ -3,7 +3,7 @@ import { Task, TaskStatus } from './task.model';
 import { v4 as uuid } from 'uuid';
 import { CreateTaskDto } from './dto/createTask.dto';
 import { UpdateTaskDto } from './dto/updateTask.dto';
-import { GetTaskFilter } from './dto/get-task-filter.dto';
+import { GetTaskFilter } from './dto/getTaskFilter.dto';
 import { UpdateTaskStatusDto } from './dto/updateTaskStatus.dto';
 @Injectable()
 export class TasksService {

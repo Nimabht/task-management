@@ -12,7 +12,7 @@ import { TasksService } from './tasks.service';
 import { Task, TaskStatus } from './task.model';
 import { CreateTaskDto } from './dto/createTask.dto';
 import { UpdateTaskDto } from './dto/updateTask.dto';
-import { GetTaskFilter } from './dto/get-task-filter.dto';
+import { GetTaskFilter } from './dto/getTaskFilter.dto';
 import { UpdateTaskStatusDto } from './dto/updateTaskStatus.dto';
 
 @Controller('tasks')
