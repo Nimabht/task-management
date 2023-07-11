@@ -1,78 +1,78 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { Task, TaskStatus } from './task.model';
-import { v4 as uuid } from 'uuid';
+import { TaskStatus } from './taskStatus.enum';
+import { InjectRepository } from '@nestjs/typeorm';
 import { CreateTaskDto } from './dto/createTask.dto';
-import { UpdateTaskDto } from './dto/updateTask.dto';
 import { GetTaskFilter } from './dto/getTaskFilter.dto';
 import { UpdateTaskStatusDto } from './dto/updateTaskStatus.dto';
+import { Task } from './task.entity';
+import { Repository } from 'typeorm';
+
 @Injectable()
 export class TasksService {
-  private tasks: Task[] = [];
+  constructor(
+    @InjectRepository(Task) private taskRepository: Repository<Task>,
+  ) {}
 
-  getAllTasks(): Task[] {
-    return this.tasks;
+  async getAllTasks(): Promise<Task[]> {
+    return await this.taskRepository.find();
   }
 
-  getTaskWithFilters(filterDto: GetTaskFilter): Task[] {
+  async getTaskWithFilters(filterDto: GetTaskFilter): Promise<Task[]> {
     const { status, search } = filterDto;
-    let filteredTasks = this.tasks;
+    const query = this.taskRepository.createQueryBuilder('task');
 
-    if (!!status)
-      filteredTasks = filteredTasks.filter((task) => task.status === status);
+    if (!!status) {
+      query.andWhere('task.status = :status', { status });
+    }
 
-    if (!!search)
-      filteredTasks = filteredTasks.filter(
-        (task) =>
-          task.title.toLowerCase().includes(search.toLowerCase()) ||
-          task.description.toLowerCase().includes(search.toLowerCase()),
+    if (!!search) {
+      query.andWhere(
+        '(task.title ILIKE :search OR task.description ILIKE :search)',
+        {
+          search: `%${search}%`,
+        },
       );
+    }
 
+    const filteredTasks = await query.getMany();
     return filteredTasks;
   }
 
-  getTaskById(id: string): Task {
-    const task = this.tasks.find((task) => task.id === id);
-    if (!task) throw new NotFoundException(`Task with ID "${id}" not found.`);
+  async getTaskById(taskId: string): Promise<Task> {
+    const task = await this.taskRepository.findOneBy({ id: taskId });
+    if (!task)
+      throw new NotFoundException(`Task with ID "${taskId}" not found.`);
     return task;
   }
 
-  createTask(createTaskDto: CreateTaskDto): Task {
+  async createTask(createTaskDto: CreateTaskDto): Promise<Task> {
     const { title, description } = createTaskDto;
-    const task: Task = {
-      id: uuid(),
+    const task = this.taskRepository.create({
       title,
       description,
       status: TaskStatus.OPEN,
-    };
-
-    this.tasks.push(task);
-
-    return task;
-  }
-
-  // updateTask(id: string, updateTaskDto: UpdateTaskDto): Task {
-  //   const { title, description, status } = updateTaskDto;
-  //   const taskIndex = this.tasks.findIndex((task) => {
-  //     return task.id == id;
-  //   });
-
-  //   this.tasks[taskIndex].title = title;
-  //   this.tasks[taskIndex].description = description;
-  //   this.tasks[taskIndex].status = status;
-
-  //   return this.tasks[taskIndex];
-  // }
-
-  updateTaskStatus(task: Task, updateTaskStatusDto: UpdateTaskStatusDto) {
-    const { status } = updateTaskStatusDto;
-    task.status = status;
-    return task;
-  }
-
-  deleteTask(id: string): void {
-    const existingTask = this.getTaskById(id);
-    this.tasks = this.tasks.filter((task) => {
-      task.id != existingTask.id;
     });
+    await this.taskRepository.save(task);
+    return task;
+  }
+
+  async updateTaskStatus(
+    taskId: string,
+    updateTaskStatusDto: UpdateTaskStatusDto,
+  ): Promise<Task> {
+    const { status } = updateTaskStatusDto;
+    const task = await this.getTaskById(taskId);
+    task.status = status;
+    await this.taskRepository.save(task);
+    return task;
+  }
+
+  async deleteTask(taskId: string): Promise<void> {
+    const result = await this.taskRepository.delete(taskId);
+    console.log(result);
+
+    if (result.affected === 0) {
+      throw new NotFoundException(`Task with ID "${taskId}" not found.`);
+    }
   }
 }
